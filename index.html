@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐！</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- GSAP 动画库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff6b8b',
+                        secondary: '#ffd700',
+                        accent: '#8a2be2',
+                        light: '#fff0f5',
+                        dark: '#4a4a4a'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Dancing Script', 'cursive']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'wiggle': 'wiggle 1s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .text-shadow-lg {
+                text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+                background-image: linear-gradient(to right, #ff6b8b, #8a2be2);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            .glass {
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            }
+            .candle-flame {
+                animation: flicker 2s infinite alternate;
+            }
+            @keyframes flicker {
+                0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+                50% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+                100% { transform: scale(0.9) rotate(-5deg); opacity: 0.9; }
+            }
+            .balloon {
+                animation: float 3s ease-in-out infinite;
+                transform-origin: bottom center;
+            }
+            .balloon:before {
+                content: '';
+                position: absolute;
+                bottom: -15px;
+                left: 50%;
+                width: 2px;
+                height: 20px;
+                background-color: rgba(0, 0, 0, 0.2);
+                transform: translateX(-50%);
+            }
+            .confetti {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background-color: var(--color);
+                border-radius: 50%;
+                animation: fall 3s linear forwards;
+            }
+            @keyframes fall {
+                0% {
+                    transform: translateY(-100vh) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+            .firework {
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                background-color: var(--color);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: explode 1.5s ease-out forwards;
+            }
+            @keyframes explode {
+                0% {
+                    transform: scale(0);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(0);
+                    opacity: 0;
+                }
+            }
+        }
+    </style>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-light min-h-screen overflow-x-hidden">
+    <!-- 背景 -->
+    <div class="fixed inset-0 z-0">
+        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/ff7efbe0c78d4a26ad3d5a26d5894310~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202603221228572D8333FECD8B139979D7&rrcfp=f06b921b&x-expires=1776745775&x-signature=0zmApsO2sA6ZW7Tt7n6fyp4If1g%3D" 
+             alt="生日背景" 
+             class="w-full h-full object-cover opacity-70">
+    </div>
+    
+    <!-- 音频控制 -->
+    <div class="fixed top-4 right-4 z-50 glass rounded-full p-2">
+        <button id="audioToggle" class="w-10 h-10 flex items-center justify-center text-primary hover:text-secondary transition-colors">
+            <i class="fa fa-volume-up text-xl"></i>
+        </button>
+        <audio id="birthdaySong" loop>
+            <source src="audio/happy_birthday.mp3" type="audio/mpeg">
+            您的浏览器不支持音频元素。
+        </audio>
+    </div>
+    
+    <!-- 主容器 -->
+    <div class="relative z-10 container mx-auto px-4 py-12 min-h-screen flex flex-col">
+        <!-- 欢迎区域 -->
+        <section class="text-center mb-12 mt-8">
+            <h1 id="birthdayGreeting" class="text-[clamp(2.5rem,8vw,5rem)] font-display font-bold text-gradient mb-4 animate-float">
+                生日快乐！
+            </h1>
+            <p id="nameDisplay" class="text-[clamp(1.5rem,5vw,3rem)] font-display text-white text-shadow-lg mb-6">
+                老姐
+            </p>
+            <div class="glass inline-block rounded-xl p-6 max-w-2xl">
+                <p id="customMessage" class="text-[clamp(1rem,3vw,1.5rem)] text-dark leading-relaxed">
+                    臭老姐，生日快乐，虽然你老是欺负我，但是呢你对我的好我还是看得见的，
+					别的不说了但是你以后一定要幸福啊！
+                </p>
+            </div>
+        </section>
+        
+        
+        <!-- 蛋糕区域 -->
+        <section class="flex justify-center items-center mb-16 relative">
+            <div id="cakeContainer" class="relative w-[clamp(200px,60vw,500px)] h-[clamp(200px,60vw,500px)]">
+                <!-- 蛋糕图片 -->
+                <img src="https://p3-doubao-search-sign.byteimg.com/labis/325948ca088b73a3705e0748866f46f8~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1789705749&x-signature=KPJPSewiht5k%2BYkEarbRJy6mSjo%3D" 
+                     alt="生日蛋糕" 
+                     class="w-full h-full object-contain">
+                
+                <!-- 蜡烛火焰 (动态生成) -->
+                <div id="candlesContainer" class="absolute inset-0">
+                    <!-- 蜡烛火焰将通过JS动态生成 -->
+                </div>
+                
+                <!-- 吹蜡烛提示 -->
+                <div id="blowHint" class="absolute -bottom-12 left-1/2 transform -translate-x-1/2 glass rounded-full px-6 py-2 text-dark font-medium">
+                    点击蛋糕或对着麦克风吹气来熄灭蜡烛
+                </div>
+            </div>
+        </section>
+        
+        <!-- 照片墙区域 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-display font-bold text-primary text-center mb-8">回忆相册</h2>
+            <div class="glass rounded-xl p-6">
+                <div id="photoWall" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- 示例照片 -->
+                    <div class="relative aspect-square rounded-lg overflow-hidden group">
+                        <img src=js/2.jpg
+                             alt="生日照片1" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                            <p class="text-white p-3 text-sm">调皮的老姐</p>
+                        </div>
+                    </div>
+                    <div class="relative aspect-square rounded-lg overflow-hidden group">
+                        <img src=js/1.jpg
+                             alt="生日照片2" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                            <p class="text-white p-3 text-sm">可爱的老姐</p>
+                        </div>
+                    </div>
+                    <div class="relative aspect-square rounded-lg overflow-hidden group">
+                        <img src=js/3.jpg 
+                             alt="生日照片3" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                            <p class="text-white p-3 text-sm">傻乎乎的老姐</p>
+                        </div>
+                    </div>
+                </div>
+                
+                
+        </section>
+        
+        <!-- 祝福区域 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-display font-bold text-primary text-center mb-8">来自朋友们的祝福</h2>
+            <div id="wishesContainer" class="space-y-4 max-w-3xl mx-auto">
+                <!-- 示例祝福 -->
+                <div class="glass rounded-xl p-4">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 rounded-full bg-primary/30 flex items-center justify-center text-primary font-bold text-xl mr-4">
+                            A
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-dark">汤必盛</h3>
+                            <p class="text-dark">祝老姐生日快乐！愿你无忧无虑，被爱包围，工作顺利，生活顺心，年年岁岁都安康，岁岁年年皆欢喜</p>
+                            <p class="text-xs text-dark/60 mt-1">2026-03-22 18:30</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass rounded-xl p-4">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 rounded-full bg-secondary/30 flex items-center justify-center text-secondary font-bold text-xl mr-4">
+                            B
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-dark">老弟</h3>
+                            <p class="text-dark">祝老姐早日升职加薪，遇见如意郎君，天天开心！</p>
+                            <p class="text-xs text-dark/60 mt-1">2026-03-22 19:15</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    <div class="glass rounded-xl p-4">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-full bg-primary/30 flex items-center justify-center text-primary font-bold text-xl mr-4">
+                                C
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-dark">朱书宏</h3>
+                                <p class="text-dark">生日快乐！</p>
+                                <p class="text-xs text-dark/60 mt-1">2026-03-22 20：30</p>
+                            </div>
+                        </div>
+                    </div>
+            
+        </section>
+        
+        <!-- 底部 -->
+        <footer class="mt-auto text-center text-white text-shadow">
+            <p>©汤必繁制作</p>
+        </footer>
+    </div>
+    
+    <!-- 烟花容器 -->
+    <div id="fireworksContainer" class="fixed inset-0 z-5 pointer-events-none"></div>
+    
+    <!-- 气球容器 -->
+    <div id="balloonsContainer" class="fixed inset-0 z-5 pointer-events-none overflow-hidden"></div>
+    
+    <!-- 纸屑容器 -->
+    <div id="confettiContainer" class="fixed inset-0 z-5 pointer-events-none"></div>
+    
+    <script>
+        // DOM元素
+        const audioToggle = document.getElementById('audioToggle');
+        const birthdaySong = document.getElementById('birthdaySong');
+        const nameInput = document.getElementById('nameInput');
+        const messageInput = document.getElementById('messageInput');
+        const updateButton = document.getElementById('updateButton');
+        const nameDisplay = document.getElementById('nameDisplay');
+        const customMessage = document.getElementById('customMessage');
+        const cakeContainer = document.getElementById('cakeContainer');
+        const candlesContainer = document.getElementById('candlesContainer');
+        const photoUpload = document.getElementById('photoUpload');
+        const photoWall = document.getElementById('photoWall');
+        const wishName = document.getElementById('wishName');
+        const wishMessage = document.getElementById('wishMessage');
+        const addWishButton = document.getElementById('addWishButton');
+        const wishesContainer = document.getElementById('wishesContainer');
+        const fireworksContainer = document.getElementById('fireworksContainer');
+        const balloonsContainer = document.getElementById('balloonsContainer');
+        const confettiContainer = document.getElementById('confettiContainer');
+        const customizationSection = document.getElementById('customizationSection');
+        
+        // 音频控制
+        let isAudioPlaying = false;
+        audioToggle.addEventListener('click', () => {
+            if (isAudioPlaying) {
+                birthdaySong.pause();
+                audioToggle.innerHTML = '<i class="fa fa-volume-off text-xl"></i>';
+            } else {
+                birthdaySong.play().catch(error => {
+                    console.log('音频播放失败:', error);
+                });
+                audioToggle.innerHTML = '<i class="fa fa-volume-up text-xl"></i>';
+            }
+            isAudioPlaying = !isAudioPlaying;
+        });
+        
+        // 自动播放音频（需要用户交互后）
+        document.addEventListener('click', () => {
+            if (!isAudioPlaying && birthdaySong.paused) {
+                birthdaySong.play().catch(error => {
+                    console.log('音频自动播放失败:', error);
+                });
+                isAudioPlaying = true;
+                audioToggle.innerHTML = '<i class="fa fa-volume-up text-xl"></i>';
+            }
+        }, { once: true });
+        
+        // 更新祝福
+        updateButton.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            const message = messageInput.value.trim();
+            
+            if (name) {
+                nameDisplay.textContent = `亲爱的 ${name}`;
+            }
+            
+            if (message) {
+                customMessage.textContent = message;
+            }
+            
+            // 隐藏自定义区域
+            customizationSection.classList.add('animate-fadeOut');
+            setTimeout(() => {
+                customizationSection.style.display = 'none';
+            }, 500);
+            
+            // 显示庆祝效果
+            createConfetti();
+            createBalloons();
+        });
+        
+        // 生成蜡烛
+        function createCandles() {
+            // 清除现有蜡烛
+            candlesContainer.innerHTML = '';
+            
+            // 蜡烛位置（相对于蛋糕图片）
+            const candlePositions = [
+                { top: '30%', left: '30%' },
+                { top: '25%', left: '40%' },
+                { top: '20%', left: '50%' },
+                { top: '25%', left: '60%' },
+                { top: '30%', left: '70%' }
+            ];
+            
+            // 创建蜡烛
+            candlePositions.forEach((pos, index) => {
+                const candle = document.createElement('div');
+                candle.className = 'absolute';
+                candle.style.top = pos.top;
+                candle.style.left = pos.left;
+                candle.style.transform = 'translate(-50%, -50%)';
+                candle.innerHTML = `
+                    <div class="w-4 h-12 bg-white rounded-t-md relative">
+                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-3 bg-yellow-400 rounded-full candle-flame" id="flame-${index}"></div>
+                    </div>
+                `;
+                candlesContainer.appendChild(candle);
+            });
+        }
+        
+        // 吹蜡烛效果
+        let candlesBlown = false;
+        cakeContainer.addEventListener('click', () => {
+            if (!candlesBlown) {
+                blowCandles();
+            }
+        });
+        
+        // 麦克风检测（吹蜡烛）
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+                    const analyser = audioContext.createAnalyser();
+                    
+                    analyser.fftSize = 256;
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    mediaStreamSource.connect(analyser);
+                    
+                    function checkBlow() {
+                        analyser.getByteFrequencyData(dataArray);
+                        
+                        // 计算音量
+                        let sum = 0;
+                        for (let i = 0; i < bufferLength; i++) {
+                            sum += dataArray[i];
+                        }
+                        const average = sum / bufferLength;
+                        
+                        // 如果音量超过阈值且蜡烛未被吹灭
+                        if (average > 50 && !candlesBlown) {
+                            blowCandles();
+                        }
+                        
+                        requestAnimationFrame(checkBlow);
+                    }
+                    
+                    checkBlow();
+                })
+                .catch(err => {
+                    console.log('无法访问麦克风:', err);
+                });
+        }
+        
+        // 吹灭蜡烛
+        function blowCandles() {
+            const flames = document.querySelectorAll('[id^="flame-"]');
+            
+            flames.forEach((flame, index) => {
+                // 随机延迟熄灭，增加真实感
+                setTimeout(() => {
+                    flame.style.animation = 'none';
+                    flame.style.opacity = '0';
+                }, index * 200);
+            });
+            
+            candlesBlown = true;
+            
+            // 显示庆祝效果
+            createFireworks();
+            createConfetti();
+            
+            // 显示提示
+            const blowHint = document.getElementById('blowHint');
+            blowHint.textContent = '生日快乐！愿望成真！';
+            blowHint.classList.add('bg-secondary/80');
+        }
+        
+        // 上传照片
+        photoUpload.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            const maxPhotos = 6;
+            const currentPhotos = photoWall.querySelectorAll('.relative').length;
+            const remainingSlots = maxPhotos - currentPhotos;
+            const photosToAdd = files.slice(0, remainingSlots);
+            
+            photosToAdd.forEach(file => {
+                const reader = new FileReader();
+                
+                reader.onload = (event) => {
+                    const photoDiv = document.createElement('div');
+                    photoDiv.className = 'relative aspect-square rounded-lg overflow-hidden group';
+                    photoDiv.innerHTML = `
+                        <img src="${event.target.result}" alt="上传的照片" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                            <button class="delete-photo text-white p-3" data-index="${currentPhotos + Array.from(photoWall.children).indexOf(photoDiv)}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    photoWall.appendChild(photoDiv);
+                    
+                    // 添加删除功能
+                    const deleteButton = photoDiv.querySelector('.delete-photo');
+                    deleteButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        photoDiv.remove();
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            });
+            
+            // 如果达到最大照片数量，禁用上传
+            if (currentPhotos + photosToAdd.length >= maxPhotos) {
+                photoUpload.disabled = true;
+                photoUpload.previousElementSibling.textContent = '照片已达上限';
+                photoUpload.previousElementSibling.classList.add('bg-gray-400');
+                photoUpload.previousElementSibling.classList.remove('bg-secondary', 'hover:bg-secondary/80');
+            }
+            
+            // 重置文件输入，以便可以再次选择相同的文件
+            photoUpload.value = '';
+        });
+        
+        // 添加祝福
+        addWishButton.addEventListener('click', () => {
+            const name = wishName.value.trim();
+            const message = wishMessage.value.trim();
+            
+            if (name && message) {
+                const now = new Date();
+                const timeString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                
+                const wishDiv = document.createElement('div');
+                wishDiv.className = 'glass rounded-xl p-4 animate-fadeIn';
+                wishDiv.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center text-accent font-bold text-xl mr-4">
+                            ${name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-dark">${name}</h3>
+                            <p class="text-dark">${message}</p>
+                            <p class="text-xs text-dark/60 mt-1">${timeString}</p>
+                        </div>
+                    </div>
+                `;
+                
+                wishesContainer.appendChild(wishDiv);
+                
+                // 清空输入
+                wishName.value = '';
+                wishMessage.value = '';
+                
+                // 显示庆祝效果
+                createConfetti();
+            }
+        });
+        
+        // 创建烟花
+        function createFireworks() {
+            const colors = ['#ff6b8b', '#ffd700', '#8a2be2', '#00bfff', '#32cd32'];
+            
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    
+                    // 随机位置
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 60 + 10; // 10% - 70%
+                    
+                    firework.style.left = `${x}%`;
+                    firework.style.top = `${y}%`;
+                    firework.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+                    
+                    fireworksContainer.appendChild(firework);
+                    
+                    // 移除烟花
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 1500);
+                }, i * 200);
+            }
+        }
+        
+        // 创建气球
+        function createBalloons() {
+            const colors = ['#ff6b8b', '#ffd700', '#8a2be2', '#00bfff', '#32cd32', '#ff4500'];
+            
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const balloon = document.createElement('div');
+                    balloon.className = 'balloon absolute';
+                    
+                    // 随机大小
+                    const size = Math.random() * 60 + 40; // 40px - 100px
+                    
+                    // 随机位置
+                    const x = Math.random() * 100;
+                    const delay = Math.random() * 2;
+                    const duration = Math.random() * 3 + 3; // 3s - 6s
+                    
+                    balloon.style.width = `${size}px`;
+                    balloon.style.height = `${size * 1.2}px`;
+                    balloon.style.left = `${x}%`;
+                    balloon.style.bottom = `-${size * 1.2}px`;
+                    balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    balloon.style.borderRadius = '50% 50% 50% 50% / 60% 60% 40% 40%';
+                    balloon.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                    
+                    balloonsContainer.appendChild(balloon);
+                    
+                    // 移除气球
+                    setTimeout(() => {
+                        balloon.style.animation = `float ${duration}s ease-in-out forwards`;
+                        balloon.style.transform = 'translateY(-150vh)';
+                        setTimeout(() => {
+                            balloon.remove();
+                        }, duration * 1000);
+                    }, 5000);
+                }, i * 100);
+            }
+        }
+        
+        // 创建纸屑
+        function createConfetti() {
+            const colors = ['#ff6b8b', '#ffd700', '#8a2be2', '#00bfff', '#32cd32', '#ff4500', '#ffffff'];
+            
+            for (let i = 0; i < 200; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    
+                    // 随机大小
+                    const size = Math.random() * 10 + 5; // 5px - 15px
+                    
+                    // 随机位置
+                    const x = Math.random() * 100;
+                    const delay = Math.random() * 2;
+                    const duration = Math.random() * 3 + 2; // 2s - 5s
+                    const rotation = Math.random() * 360;
+                    
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.left = `${x}%`;
+                    confetti.style.setProperty('--color', colors[Math.floor(Math.random() * colors.length)]);
+                    confetti.style.animationDelay = `${delay}s`;
+                    confetti.style.animationDuration = `${duration}s`;
+                    confetti.style.transform = `rotate(${rotation}deg)`;
+                    
+                    // 随机形状
+                    if (Math.random() > 0.5) {
+                        confetti.style.borderRadius = '50%';
+                    } else {
+                        confetti.style.borderRadius = '0';
+                    }
+                    
+                    confettiContainer.appendChild(confetti);
+                    
+                    // 移除纸屑
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, (delay + duration) * 1000);
+                }, i * 10);
+            }
+        }
+        
+        // 初始化
+        function init() {
+            // 创建蜡烛
+            createCandles();
+            
+            // 初始气球效果
+            createBalloons();
+            
+            // 初始纸屑效果
+            setTimeout(() => {
+                createConfetti();
+            }, 1000);
+            
+            // 定期创建烟花
+            setInterval(() => {
+                if (Math.random() > 0.7) { // 30% 概率
+                    createFireworks();
+                }
+            }, 5000);
+            
+            // 添加淡入动画类
+            document.head.insertAdjacentHTML('beforeend', `
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(20px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    @keyframes fadeOut {
+                        from { opacity: 1; transform: translateY(0); }
+                        to { opacity: 0; transform: translateY(-20px); }
+                    }
+                    .animate-fadeIn {
+                        animation: fadeIn 0.5s ease-out forwards;
+                    }
+                    .animate-fadeOut {
+                        animation: fadeOut 0.5s ease-out forwards;
+                    }
+                </style>
+            `);
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
